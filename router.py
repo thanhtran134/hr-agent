@@ -1,15 +1,14 @@
 import json
-
 from fastapi import FastAPI
 import uvicorn
 from autogen_agentchat.messages import ThoughtEvent
 from exceptions.exceptions import InvalidToolCallException
-from orchestrator.orchestrator import run_agent_with_validation, run_stream_agent_with_validation
-from orchestrator.models import ImportExecutionResult
-from orchestrator.orchestrator_agent import create_orchestrator_agent_with_context
-from orchestrator_agentchat.base import TaskResult, TaskResultList
-from orchestrator_agentchat.messages_loader import messages_loader
-from orchestrator_agentchat.schemas import ChatResponseMemory, get_current_datetime
+from exceptions.ultis import run_agent_with_validation, run_stream_agent_with_validation
+from autogen_core.models import ImportExecutionResult, FunctionExecutionResult
+from orchestrator.agent_builder import create_orchestrator_agent_with_context
+from autogen_agentchat.base import TaskResult, TaskResultList
+from orchestrator.messages_loader import messages_loader
+from.schemas import ChatRequestMemory, ChatResponseMemory, get_current_datetime
 
 app = FastAPI(title="HR Agent Autogen")
 
@@ -54,19 +53,20 @@ async def autogen_chat(item: ChatRequestMemory):
         if isinstance(msg.content, list) and all(isinstance(item, FunctionExecutionResult) for item in msg.content):
             context += f"type = {msg.type}, content = {msg.content}\n"
             for tool_result in msg.content:
-                context += f"tool_result: {tool_result}\n"
-                context += f"VAL: {tool_result.result}\n"
-                context += f"content_val = {tool_result.content}\n"
-                context += f"content_type = {tool_result.content_type}\n"
+                # context += f"tool_result: {tool_result}\n"
+                # context += f"VAL: {tool_result.result}\n"
+                content_val += f"content_val = {tool_result.content}\n"
+                # context += f"content_type = {tool_result.content_type}\n"
                 list_val = json.loads(content_val)
-                context += f"list_val: {list_val}\n"
-                context += f"VAL: {(list_val)}\n"
+                # context += f"list_val: {list_val}\n"
+                # context += f"VAL: {(list_val)}\n"
                 context += f"Tool = {tool_result.name}\n"
+                context += f"content_val = {list_val}\n"
         elif isinstance(msg, ThoughtEvent):
             continue
         else:
             context += f"type = {msg.type}, content = {msg.content}\n"
-            context += "___________\n"
+            context += "________________________________\n"
             print("DEBUG INFO")
             print(context)
 
